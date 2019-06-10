@@ -5,11 +5,11 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion build_versions.target_sdk
+    compileSdkVersion versions.compileSdkVersion
     defaultConfig {
         applicationId "com.kotlinsample.app"
-        minSdkVersion build_versions.min_sdk
-        targetSdkVersion build_versions.target_sdk
+        minSdkVersion versions.minSdkVersion
+        targetSdkVersion versions.targetSdkVersion
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -22,14 +22,17 @@ android {
     }
 }
 
+repositories {
+    maven { url 'https://kotlin.bintray.com/kotlinx' }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation deps.kotlin.stdlib
 
     implementation deps.support.app_compat
-    implementation deps.constraint_layout
 
-    testImplementation deps.junit
+    testImplementation deps.testing.junit
     androidTestImplementation deps.atsl.runner
     androidTestImplementation deps.espresso.core
 
