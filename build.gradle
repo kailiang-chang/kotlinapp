@@ -29,7 +29,7 @@ allprojects {
     repositories {
         google()
         jcenter()
-        //maven { url 'https://artifactory.rakuten-it.com/membership-mvn-release/' }
+        maven { url 'https://artifactory.rakuten-it.com/membership-mvn-release/' }
     }
 }
 
