@@ -11,6 +11,9 @@ buildscript {
         classpath deps.android_gradle_plugin
         classpath deps.kotlin.plugin
 
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -26,9 +29,15 @@ allprojects {
     repositories {
         google()
         jcenter()
+        maven { url 'https://artifactory.rakuten-it.com/membership-mvn-release/' }
     }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+def generateVersionCode(versionName) {
+    def v = versionName.tokenize(".-")
+    return v[0].toInteger() * 10000 + v[1].toInteger() * 100 + v[2].toInteger()
 }
