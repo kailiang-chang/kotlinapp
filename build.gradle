@@ -17,7 +17,9 @@ buildscript {
 }
 
 plugins {
+    id 'pl.allegro.tech.build.axion-release' version '1.9.2'
     id 'digital.wup.android-maven-publish'   version '3.6.2'
+    id "io.gitlab.arturbosch.detekt"         version "1.0.0.M12.4"   apply false
 }
 
 allprojects {
