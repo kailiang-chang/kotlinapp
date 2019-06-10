@@ -1,0 +1,3 @@
+[submodule "kotlinapi"]
+	path = kotlinapi
+	url = https://kleinchang@bitbucket.org/kleinchang/kotlinapi.git

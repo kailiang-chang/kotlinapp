@@ -1,0 +1,28 @@
+pool:
+  vmImage: 'macOS 10.13'
+
+steps:
+- task: Gradle@2
+  inputs:
+    workingDirectory: ''
+    gradleWrapperFile: 'gradlew'
+    publishJUnitResults: false
+    tasks: 'assembleDebug'
+
+- task: Gradle@2
+  inputs:
+    workingDirectory: ''
+    gradleWrapperFile: 'gradlew'
+    publishJUnitResults: false
+    tasks: 'assembleRelease'
+
+- task: CopyFiles@2
+  inputs:
+    contents: '**/*.apk'
+    targetFolder: '$(build.artifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(build.artifactStagingDirectory)/app/build/outputs/'
+    artifactName: 'apk-files'
+    artifactType: 'container'

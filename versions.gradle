@@ -1,0 +1,46 @@
+def build_versions = [:]
+build_versions.min_sdk = 16
+build_versions.target_sdk = 26
+build_versions.build_tools = "26.0.2"
+
+ext.build_versions = build_versions
+
+
+def versions = [:]
+versions.support = "26.1.0"
+versions.constraint_layout = "1.0.2"
+versions.junit = "4.12"
+versions.atsl_rules = "1.0.1"
+versions.espresso = "3.0.1"
+versions.kotlin = "1.2.20"
+versions.android_gradle_plugin = "3.0.0"
+
+
+
+def kotlin = [:]
+kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jre7:$versions.kotlin"
+kotlin.plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
+
+
+def support = [:]
+support.app_compat = "com.android.support:appcompat-v7:$versions.support"
+
+def atsl = [:]
+atsl.runner = "com.android.support.test:runner:$versions.atsl_runner"
+
+def espresso = [:]
+espresso.core = "com.android.support.test.espresso:espresso-core:$versions.espresso"
+
+
+
+def deps = [:]
+deps.kotlin = kotlin
+deps.support = support
+deps.atsl = atsl
+deps.espresso = espresso
+
+deps.constraint_layout = "com.android.support.constraint:constraint-layout:$versions.constraint_layout"
+deps.junit = "junit:junit:$versions.junit"
+deps.android_gradle_plugin = "com.android.tools.build:gradle:$versions.android_gradle_plugin"
+
+ext.deps = deps
