@@ -1,0 +1,27 @@
+apply plugin: 'maven-publish'
+apply plugin: 'digital.wup.android-maven-publish'
+
+publishing {
+  publications {
+    library(MavenPublication) {
+      setGroupId(project.group)
+      setArtifactId(project.name)
+
+      from components.android
+    }
+  }
+
+  repositories {
+    maven {
+      credentials {
+        username System.env.MAVEN_ACCOUNT
+        password System.env.MAVEN_PASSWORD
+      }
+      authentication { basic(BasicAuthentication) }
+
+      //def repo = project.version.contains('-') ? 'snapshot' : 'release'
+      def repo = 'snapshot'
+      url "https://artifactory.rakuten-it.com/membership-mvn-$repo-local"
+    }
+  }
+}
