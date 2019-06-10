@@ -1,7 +1,7 @@
 package com.kotlinsample.app
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.library.kotlinapi.Math
 import kotlinx.android.synthetic.main.activity_sample.*
 

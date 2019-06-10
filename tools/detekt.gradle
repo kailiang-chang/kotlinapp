@@ -1,0 +1,12 @@
+apply plugin: 'io.gitlab.arturbosch.detekt'
+
+detekt {
+    debug = true
+    version = "1.0.0.M12.3"
+    profile("main") {
+        input = "$projectDir"
+        output = "$project.rootDir/detekt/$projectDir/output.xml"
+        config = "$project.rootDir/tools/default-detekt-config.yml"
+        filters = ".*test.*,.*/resources/.*"
+    }
+}

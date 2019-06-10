@@ -1,0 +1,13 @@
+subprojects {
+    apply plugin: 'pl.allegro.tech.build.axion-release'
+
+    scmVersion {
+        useHighestVersion = true
+        tag {
+            versionSeparator = ''
+            versionIncrementer 'incrementMinorIfNotOnRelease'
+        }
+    }
+
+    project.version = scmVersion.version
+}
