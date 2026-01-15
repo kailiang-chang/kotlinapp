@@ -2,27 +2,29 @@ package com.kotlinsample.app
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.kotlinsample.app.databinding.ActivitySampleBinding
 import com.library.kotlinapi.Math
-import kotlinx.android.synthetic.main.activity_sample.*
 
 class SampleActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivitySampleBinding
     val mSdk = Math()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_sample)
+        binding = ActivitySampleBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        submit.setOnClickListener {
+        binding.submit.setOnClickListener {
             // 2. submit & store into core database
         }
 
-        get_avg.setOnClickListener {
-            var intString = input.text.toString().toIntOrNull()
+        binding.getAvg.setOnClickListener {
+            var intString = binding.input.text.toString().toIntOrNull()
             if (intString == null) {
                 println("Not valid input")
             } else {
-                average.text = mSdk.GetAverage(intString).toString()
+                binding.average.text = mSdk.GetAverage(intString).toString()
             }
         }
     }
