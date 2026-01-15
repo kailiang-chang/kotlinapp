@@ -14,8 +14,8 @@ publishing {
   repositories {
     maven {
       credentials {
-        username System.env.MAVEN_ACCOUNT
-        password System.env.MAVEN_PASSWORD
+        username System.getenv('MAVEN_ACCOUNT')
+        password System.getenv('MAVEN_PASSWORD')
       }
       authentication { basic(BasicAuthentication) }
 
