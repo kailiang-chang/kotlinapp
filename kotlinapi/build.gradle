@@ -2,15 +2,16 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion build_versions.target_sdk
+    namespace 'com.library.kotlinapi'
+    compileSdkVersion versions.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion build_versions.min_sdk
-        targetSdkVersion build_versions.target_sdk
+        minSdkVersion versions.minSdkVersion
+        targetSdkVersion versions.targetSdkVersion
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -19,13 +20,22 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation deps.support.app_compat
-    testImplementation deps.junit
+    testImplementation deps.testing.junit
     androidTestImplementation deps.atsl.runner
     androidTestImplementation deps.espresso.core
     implementation deps.kotlin.stdlib
@@ -34,5 +44,6 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.2'
 }
 repositories {
-    mavenCentral()
+    //mavenCentral()
+     maven { url 'https://kotlin.bintray.com/kotlinx' }
 }
