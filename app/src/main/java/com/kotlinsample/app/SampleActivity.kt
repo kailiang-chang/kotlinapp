@@ -21,10 +21,10 @@ class SampleActivity : AppCompatActivity() {
 
         binding.getAvg.setOnClickListener {
             var intString = binding.input.text.toString().toIntOrNull()
-            if (intString != null) {
+            if (intString == null) {
                 println("Not valid input")
             } else {
-                binding.average.text = mSdk.GetAverage(intString!!).toString()
+                binding.average.text = mSdk.GetAverage(intString).toString()
             }
         }
     }
