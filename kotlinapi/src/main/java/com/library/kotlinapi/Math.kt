@@ -37,8 +37,7 @@ class Math {
             override fun onResponse(call: Call?, response: Response?) {
                 val response = response?.body()?.string()
                 val list: Array<Long> = Gson().fromJson(response, Array<Long>::class.java)
-                data[0] = (list.sum() + userInputs.sum()).toFloat() / (list.size + userInputs.size)
-                latch.countDown()
+                data[0] = (list.sum() + userInputs.sum()) / (list.size + userInputs.size)
             }
 
             override fun onFailure(call: Call?, e: IOException?) {
