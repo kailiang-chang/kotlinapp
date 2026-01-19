@@ -2,17 +2,16 @@ apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
 
-apply plugin: 'kotlin-android-extensions'
-
 android {
-    compileSdkVersion build_versions.target_sdk
+    namespace 'com.kotlinsample.app'
+    compileSdkVersion versions.compileSdkVersion
     defaultConfig {
         applicationId "com.kotlinsample.app"
-        minSdkVersion build_versions.min_sdk
-        targetSdkVersion build_versions.target_sdk
+        minSdkVersion versions.minSdkVersion
+        targetSdkVersion versions.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -20,6 +19,23 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+repositories {
+    maven { url 'https://kotlin.bintray.com/kotlinx' }
 }
 
 dependencies {
@@ -27,9 +43,8 @@ dependencies {
     implementation deps.kotlin.stdlib
 
     implementation deps.support.app_compat
-    implementation deps.constraint_layout
 
-    testImplementation deps.junit
+    testImplementation deps.testing.junit
     androidTestImplementation deps.atsl.runner
     androidTestImplementation deps.espresso.core
 

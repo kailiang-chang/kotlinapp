@@ -1,34 +1,43 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    apply from: 'versions.gradle'
+    //apply from: 'versions.gradle'
 
+    ext.kotlin_version = '1.9.22'
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath deps.android_gradle_plugin
-        classpath deps.kotlin.plugin
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
+        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:1.9.22"
+        classpath "com.android.tools.build.jetifier:jetifier-processor:1.0.0-beta04"
     }
 }
 
 plugins {
     id 'pl.allegro.tech.build.axion-release' version '1.9.2'
     id 'digital.wup.android-maven-publish'   version '3.6.2'
-    id "io.gitlab.arturbosch.detekt"         version "1.0.0.M12.4"   apply false
+    id "io.gitlab.arturbosch.detekt"         version "1.23.4"   apply false
 }
+
+apply from: "$rootDir/dependencies.gradle"
+apply from: file("scm.gradle")
 
 allprojects {
     repositories {
         google()
         jcenter()
+        maven { url 'https://artifactory.rakuten-it.com/membership-mvn-release/' }
     }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+def generateVersionCode(versionName) {
+    def v = versionName.tokenize(".-")
+    return v[0].toInteger() * 10000 + v[1].toInteger() * 100 + v[2].toInteger()
 }
