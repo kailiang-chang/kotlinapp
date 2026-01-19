@@ -69,6 +69,8 @@ jobs:
 
             Goal:
             - Review pull request #${{ inputs.pr_number }}.
+            - ONLY analyze files matching these patterns: **/*.kt, **/*.java, **/*.gradle, **/*.xml (Android layout/manifest files)
+            - Skip all other files (markdown, images, config files, etc.)
             - First, post a short execution plan inline in the report (checks to run, files to touch).
             - Analyze the diff and run lightweight checks (no builds): lint-like reasoning, potential bugs, risky changes.
             - Produce a concise markdown report at reports/pr-${{ inputs.pr_number }}-review.md with:
@@ -83,7 +85,7 @@ jobs:
             - If ${{ inputs.post_comment }} is "true", also post a PR comment: "📄 Review report generated and attached as workflow artifact 'claude-reports' (reports/pr-${{ inputs.pr_number }}-review.md)." Use: `gh pr comment ${{ inputs.pr_number }} --body "📄 Review report is attached as artifact 'claude-reports' (reports/pr-${{ inputs.pr_number }}-review.md)"`.
             - Keep suggestions minimal and safe; do not assume project-specific build steps.
           claude_args: |
-            --allowedTools Write,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(mkdir -p reports)
+            --allowedTools Write,Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(mkdir -p reports)
 
       - name: Upload reports artifact
         if: ${{ hashFiles('reports/**') != '' }}
