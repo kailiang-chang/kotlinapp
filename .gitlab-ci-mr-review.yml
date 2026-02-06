@@ -1,0 +1,98 @@
+# GitLab CI/CD Configuration for Claude MR Review
+#
+# ABOUT THIS WORKFLOW
+# - Purpose: Generate a thorough, diff-aware review for a specific MR and write a markdown report under reports/
+# - Trigger: Manual only. Nothing runs automatically.
+# - Outputs: reports/mr-<MR>-review.md and optional MR comment linking to it
+#
+# REQUIRED CI/CD VARIABLES (Settings > CI/CD > Variables)
+# - XAI_API_KEY: Your xAI (Grok) API key (masked, protected recommended)
+# - GITLAB_TOKEN: Personal access token with api scope (or use CI_JOB_TOKEN)
+#
+# USAGE
+# 1. Via GitLab UI:
+#    - Go to CI/CD > Pipelines
+#    - Click "Run pipeline"
+#    - Add variable: MR_NUMBER = 1
+#    - Add variable: POST_COMMENT = true (optional)
+#    - Run the pipeline
+#    - Download artifacts after completion
+#
+# 2. Via glab CLI:
+#    glab ci run --branch=main --variable MR_NUMBER=1 --variable POST_COMMENT=false
+#
+# 3. Via GitLab API:
+#    curl -X POST "https://gitlab.com/api/v4/projects/PROJECT_ID/pipeline" \
+#      --header "PRIVATE-TOKEN: YOUR_TOKEN" \
+#      --data "ref=main&variables[MR_NUMBER]=1&variables[POST_COMMENT]=false"
+
+stages:
+  - review
+
+# Manual MR review job
+review-mr:
+  stage: review
+  image: python:3.11-alpine  # Small image, faster to pull than slim
+  when: manual  # Only runs when manually triggered
+
+  # Input variables (set when triggering pipeline)
+  variables:
+    MR_NUMBER: ""  # Required: MR number to review
+    POST_COMMENT: "false"  # Optional: Post comment on MR (true/false)
+
+  # Rules to ensure MR_NUMBER is provided and only run on main/master
+  rules:
+    - if: '$MR_NUMBER == ""'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+      when: manual
+    - when: never
+
+  before_script:
+    - apk add --no-cache gcc musl-dev  # Required for some Python packages on Alpine
+    - pip install --no-cache-dir --quiet openai requests
+    - chmod +x .gitlab/scripts/review_mr.py
+
+  script:
+    - echo "🔍 Reviewing MR #${MR_NUMBER}"
+    - python .gitlab/scripts/review_mr.py ${MR_NUMBER}
+
+  # Save reports as artifacts (downloadable for 30 days)
+  artifacts:
+    name: "claude-mr-${MR_NUMBER}-review"
+    paths:
+      - reports/
+    expire_in: 30 days
+    when: always
+
+# Optional: Automatic review on MR creation (costs money!)
+# Uncomment to enable automatic reviews
+#
+# auto-review-mr:
+#   stage: review
+#   image: python:3.11-alpine
+#
+#   variables:
+#     POST_COMMENT: "true"
+#
+#   rules:
+#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+#       changes:
+#         - "**/*.kt"
+#         - "**/*.java"
+#         - "**/*.gradle"
+#         - "**/*.xml"
+#
+#   before_script:
+#     - apk add --no-cache gcc musl-dev
+#     - pip install --no-cache-dir --quiet openai requests
+#
+#   script:
+#     - python .gitlab/scripts/review_mr.py ${CI_MERGE_REQUEST_IID}
+#
+#   artifacts:
+#     name: "claude-mr-${CI_MERGE_REQUEST_IID}-review"
+#     paths:
+#       - reports/
+#     expire_in: 30 days
+#     when: always
