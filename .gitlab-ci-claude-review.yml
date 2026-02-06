@@ -1,0 +1,145 @@
+# GitLab CI configuration for Claude MR Review using Claude Code CLI + GitLab MCP
+#
+# REQUIRED CI/CD VARIABLES:
+# - ANTHROPIC_API_KEY: Your Anthropic API key
+# - GITLAB_TOKEN: GitLab personal access token with api scope (for MCP server)
+#
+# USAGE:
+# - Automatic: Triggers on MR events for .kt/.java/.gradle/.xml files
+# - Manual: Run via "Run pipeline" in GitLab UI
+# - Set MR_IID variable when running manually
+
+stages:
+  - ai
+
+variables:
+  # GitLab MCP Server configuration
+  GITLAB_URL: "${CI_SERVER_URL}"
+  GITLAB_PROJECT_ID: "${CI_PROJECT_ID}"
+
+claude-review:
+  stage: ai
+  image: node:24-alpine3.21
+
+  rules:
+    # Manual trigger via web UI
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+      variables:
+        MR_IID: "${MR_IID}"  # Set this when manually triggering
+    # Auto-trigger on MR events with code changes
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - "**/*.kt"
+        - "**/*.java"
+        - "**/*.gradle"
+        - "**/*.xml"
+      variables:
+        MR_IID: "${CI_MERGE_REQUEST_IID}"
+
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 1  # Shallow clone to save time/bandwidth
+
+  before_script:
+    # Install system dependencies
+    - apk update
+    - apk add --no-cache git curl bash python3 py3-pip
+
+    # Install Claude Code CLI
+    - npm install -g @anthropic-ai/claude-code
+
+    # Install GitLab MCP Server
+    # Option 1: If available via npm
+    - npm install -g @modelcontextprotocol/server-gitlab || echo "GitLab MCP not available via npm"
+
+    # Option 2: Install from source (if needed)
+    # - git clone https://github.com/modelcontextprotocol/servers.git /tmp/mcp-servers
+    # - cd /tmp/mcp-servers/src/gitlab
+    # - npm install && npm run build
+    # - npm link
+
+    # Verify installations
+    - claude --version
+    - node --version
+
+  script:
+    # Set MR context
+    - |
+      if [ -z "$MR_IID" ]; then
+        echo "❌ Error: MR_IID not set. For manual runs, set MR_IID variable."
+        exit 1
+      fi
+
+      echo "🔍 Reviewing MR !${MR_IID}"
+
+    # Create reports directory
+    - mkdir -p reports
+
+    # Start GitLab MCP server in background (if available)
+    - |
+      if command -v gitlab-mcp-server >/dev/null 2>&1; then
+        gitlab-mcp-server &
+        MCP_PID=$!
+        echo "Started GitLab MCP server (PID: $MCP_PID)"
+        sleep 2
+      else
+        echo "⚠️  GitLab MCP server not available, proceeding without it"
+      fi
+
+    # Run Claude review (non-interactive mode)
+    - |
+      claude \
+        -p "Review merge request !${MR_IID} in this GitLab project.
+
+        Focus ONLY on these file types: .kt, .java, .gradle, .xml
+
+        Steps:
+        1. Fetch the MR diff using git or GitLab API
+        2. Analyze code changes for:
+           - Potential bugs
+           - Security issues
+           - Code quality issues
+           - Best practice violations
+        3. Write a detailed markdown report to reports/mr-${MR_IID}-review.md
+
+        The report should include:
+        - Summary of changes
+        - Strengths
+        - Issues found (with severity: high/medium/low)
+        - Suggested fixes
+        - Next actions
+
+        Do NOT modify any source files. ONLY write the review report." \
+        --permission-mode acceptEdits \
+        --allowedTools "Bash(git *) Bash(curl *) Read(*) Write(reports/*)" \
+        --dangerouslyAllowAllTools false \
+        2>&1 | tee reports/claude-output.log
+
+    # Cleanup
+    - |
+      if [ ! -z "$MCP_PID" ]; then
+        kill $MCP_PID || true
+      fi
+
+    # Verify report was created
+    - |
+      if [ -f "reports/mr-${MR_IID}-review.md" ]; then
+        echo "✅ Review completed successfully"
+        cat reports/mr-${MR_IID}-review.md
+      else
+        echo "⚠️  Warning: Review report not found at expected location"
+        echo "Check reports/claude-output.log for details"
+      fi
+
+  artifacts:
+    name: "claude-mr-${MR_IID}-review"
+    paths:
+      - reports/
+    expire_in: 30 days
+    when: always
+
+  # Environment variables needed
+  variables:
+    ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+    GITLAB_PERSONAL_TOKEN: "${GITLAB_TOKEN}"
