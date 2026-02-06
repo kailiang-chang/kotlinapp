@@ -32,9 +32,7 @@ stages:
 # Manual MR review job
 review-mr:
   stage: review
-  image:
-    name: python:3.11-alpine  # Even smaller than slim, faster to pull
-    pull_policy: if-not-present  # Use cached image if available
+  image: python:3.11-alpine  # Small image, faster to pull than slim
   when: manual  # Only runs when manually triggered
 
   # Input variables (set when triggering pipeline)
@@ -72,9 +70,7 @@ review-mr:
 #
 # auto-review-mr:
 #   stage: review
-#   image:
-#     name: python:3.11-alpine
-#     pull_policy: if-not-present
+#   image: python:3.11-alpine
 #
 #   variables:
 #     POST_COMMENT: "true"
