@@ -1,0 +1,64 @@
+apply plugin: 'jacoco'
+
+android {
+    testOptions.unitTests.all {
+        jacoco {
+            includeNoLocationClasses = true
+        }
+    }
+}
+
+task jacoco(group: 'verification', description: 'Grenerate Jacoco Report for all android variants')
+tasks.check.dependsOn tasks.jacoco
+
+project.afterEvaluate {
+    def variants = android.hasProperty('libraryVariants') ? android.libraryVariants : android.applicationVariants
+    variants.forEach {
+        tasks.jacoco.dependsOn(addJacocoTask(it))
+    }
+}
+
+def addJacocoTask(variant) {
+    def variantName = variant.name.capitalize()
+    logger.info("adding jacoco task for variant $variantName")
+
+    // see https://docs.gradle.org/current/dsl/org.gradle.testing.jacoco.tasks.JacocoReport.html
+    def jacocoTask = project.tasks.create("jacoco${variantName}Report", JacocoReport)
+    jacocoTask.dependsOn("test${variantName}UnitTest")
+    jacocoTask.group = 'verification'
+    jacocoTask.description = "Generate Jacoco Report for variant $variantName"
+
+    jacocoTask.reports {
+        csv.enabled false
+        html.enabled true
+        xml.enabled true
+    }
+
+    def excludedFiles = [
+            '**/R.class',
+            '**/R$*.class',
+            '**/BuildConfig.*',
+            '**/Manifest*.*',
+            '**/*Test*.*',
+            'android/**/*.*',
+            '**/AutoValue_*.*',
+            '**/AutoParcel_*.class',
+            '**/*JavascriptBridge.class'
+    ]
+
+    def sourceDirectories = files(variant.sourceSets.java.srcDirs.flatten())
+    def classDirectories = fileTree(dir: variant.javaCompileProvider.get().destinationDir, excludes: excludedFiles)
+
+    if(project.plugins.hasPlugin("kotlin-android")) {
+        sourceDirectories.from(files(variant.sourceSets.kotlin.srcDirs.flatten()))
+        def kotlinTask = tasks.getByName("compile${variantName}Kotlin")
+        if(kotlinTask) {
+            classDirectories += fileTree(dir: kotlinTask.destinationDir, excludes: excludedFiles)
+        }
+    }
+
+    jacocoTask.sourceDirectories = sourceDirectories
+    jacocoTask.classDirectories = classDirectories
+    jacocoTask.executionData = files("${buildDir}/jacoco/test${variantName}UnitTest.exec")
+    jacocoTask
+}
