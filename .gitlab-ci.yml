@@ -1,0 +1,51 @@
+include:
+  - local: '.gitlab-ci-mr-review.yml'
+
+stages:
+  - ai
+  - review
+
+claude:
+  stage: ai
+  image: registry-jpe2.r-local.net/rpay-dev-one-operation-api-dev/node:24-alpine3.21
+  # Adjust rules to fit how you want to trigger the job:
+  # - manual runs
+  # - merge request events
+  # - web/API triggers when a comment contains '@claude'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  variables:
+    GIT_STRATEGY: fetch
+  before_script:
+    - apk update
+    - apk add --no-cache git curl bash
+
+    - echo "--- Network Debugging Start ---"
+    - ip a # Show network interfaces and IPs
+    - ping -c 3 google.com # Test basic internet connectivity
+    - ping -c 3 claude.ai # Test reachability to claude.ai's IP
+    - nslookup claude.ai # Test DNS resolution
+    - curl -v --max-time 10 https://www.google.com # Test curl with verbose output to a known good site
+    - echo "--- Network Debugging End ---"
+
+    - ./bootstrap.sh
+    # Source shell profile to make claude available
+    - source ~/.profile 2>/dev/null || source ~/.bashrc 2>/dev/null || true
+    - export PATH="$HOME/.local/bin:$PATH"
+    # Debug: verify claude installation
+    - echo "PATH=$PATH"
+    - which claude || echo "claude not found in PATH"
+    - ls -la ~/.local/bin/ || echo "~/.local/bin doesn't exist"
+
+  script:
+    # Optional: start a GitLab MCP server if your setup provides one
+    # - /bin/gitlab-mcp-server || true
+    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads
+    - echo "$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT"
+    - >
+      claude
+      -p "${AI_FLOW_INPUT:-'Review this MR and implement the requested changes'}"
+      --permission-mode acceptEdits
+      --allowedTools "Bash Read Edit Write mcp__gitlab"
+      --debug
