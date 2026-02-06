@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-GitLab MR Review Script using Claude API
+GitLab MR Review Script using Grok API
 Equivalent to GitHub's claude-code-action for GitLab CI/CD
 """
 
 import os
 import sys
-import anthropic
+from openai import OpenAI
 import requests
 from pathlib import Path
 
@@ -14,7 +14,7 @@ from pathlib import Path
 GITLAB_TOKEN = os.environ.get('GITLAB_TOKEN')
 GITLAB_API_URL = os.environ.get('CI_API_V4_URL', 'https://gitlab.com/api/v4')
 PROJECT_ID = os.environ.get('CI_PROJECT_ID')
-ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
+XAI_API_KEY = os.environ.get('XAI_API_KEY')
 POST_COMMENT = os.environ.get('POST_COMMENT', 'false').lower() == 'true'
 
 def get_mr_diff(mr_number):
@@ -54,9 +54,12 @@ def get_mr_info(mr_number):
 
     return response.json()
 
-def review_with_claude(mr_number, diff_text, mr_info):
-    """Send diff to Claude for review"""
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+def review_with_grok(mr_number, diff_text, mr_info):
+    """Send diff to Grok for review"""
+    client = OpenAI(
+        api_key=XAI_API_KEY,
+        base_url="https://api.x.ai/v1"
+    )
 
     prompt = f"""You are a careful MR reviewer.
 
@@ -83,15 +86,15 @@ Here is the diff:
 
 Generate the review report now."""
 
-    message = client.messages.create(
-        model="claude-3-5-haiku-20241022",
+    completion = client.chat.completions.create(
+        model="grok-4-1-fast",
         max_tokens=4096,
         messages=[
             {"role": "user", "content": prompt}
         ]
     )
 
-    return message.content[0].text
+    return completion.choices[0].message.content
 
 def save_report(mr_number, review_text):
     """Save review report to file"""
@@ -128,11 +131,11 @@ def main():
     mr_number = sys.argv[1]
 
     # Validate environment
-    if not all([GITLAB_TOKEN, PROJECT_ID, ANTHROPIC_API_KEY]):
+    if not all([GITLAB_TOKEN, PROJECT_ID, XAI_API_KEY]):
         print("❌ Missing required environment variables:")
         print("   - GITLAB_TOKEN (or CI_JOB_TOKEN)")
         print("   - CI_PROJECT_ID")
-        print("   - ANTHROPIC_API_KEY")
+        print("   - XAI_API_KEY")
         sys.exit(1)
 
     print(f"🔍 Fetching MR #{mr_number} info...")
@@ -145,8 +148,8 @@ def main():
         print("⚠️  No relevant files to review (only reviewing .kt, .java, .gradle, .xml)")
         sys.exit(0)
 
-    print(f"🤖 Reviewing with Claude (Haiku)...")
-    review_text = review_with_claude(mr_number, diff_text, mr_info)
+    print(f"🤖 Reviewing with Grok (grok-4-1-fast)...")
+    review_text = review_with_grok(mr_number, diff_text, mr_info)
 
     print("💾 Saving report...")
     report_path = save_report(mr_number, review_text)

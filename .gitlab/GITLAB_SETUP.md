@@ -1,11 +1,11 @@
 # GitLab MR Review Setup Guide
 
-Complete setup instructions for Claude-powered merge request reviews in GitLab.
+Complete setup instructions for Grok-powered merge request reviews in GitLab.
 
 ## Prerequisites
 
 1. GitLab project (gitlab.com or self-hosted)
-2. Anthropic API key
+2. xAI API key (for Grok)
 3. GitLab personal access token (or use built-in CI_JOB_TOKEN)
 
 ## Setup Steps
@@ -16,10 +16,12 @@ Go to **Settings > CI/CD > Variables** and add:
 
 | Variable | Value | Type | Flags |
 |----------|-------|------|-------|
-| `ANTHROPIC_API_KEY` | Your Anthropic API key | Variable | Masked, Protected |
+| `XAI_API_KEY` | Your xAI (Grok) API key | Variable | Masked, Protected |
 | `GITLAB_TOKEN` | Personal access token with `api` scope | Variable | Masked, Protected |
 
-**Note:** You can use `CI_JOB_TOKEN` instead of `GITLAB_TOKEN`, but it has limited permissions. A personal access token is recommended for posting comments.
+**Note:**
+- Get your xAI API key from https://console.x.ai/
+- You can use `CI_JOB_TOKEN` instead of `GITLAB_TOKEN`, but it has limited permissions. A personal access token is recommended for posting comments.
 
 ### 2. Copy Files to Your Repo
 
@@ -105,16 +107,16 @@ cat reports/mr-1-review.md
 
 ## Cost Optimization
 
-The script uses **Claude 3.5 Haiku** by default for cost savings.
+The script uses **Grok 4.1 Fast** by default for cost savings.
 
-To change the model, edit `.gitlab/scripts/review_mr.py` line ~76:
+To change the model, edit `.gitlab/scripts/review_mr.py` line ~90:
 
 ```python
-# Current (Haiku - cheapest)
-model="claude-3-5-haiku-20241022",
+# Current (grok-4-1-fast - fast and cost-effective)
+model="grok-4-1-fast",
 
-# Or use Sonnet 4.5 (more expensive but higher quality)
-model="claude-sonnet-4-5-20250929",
+# Or use Grok 2 (more comprehensive reasoning)
+model="grok-2-1212",
 ```
 
 ### File Filtering
@@ -137,7 +139,7 @@ To enable automatic reviews on every MR with code changes, uncomment the `auto-r
 
 ### "Missing required environment variables"
 
-Ensure `ANTHROPIC_API_KEY` and `GITLAB_TOKEN` are set in CI/CD Variables.
+Ensure `XAI_API_KEY` and `GITLAB_TOKEN` are set in CI/CD Variables (Settings > CI/CD > Variables).
 
 ### "404 Not Found" when fetching MR
 
@@ -170,6 +172,6 @@ chmod +x .gitlab/scripts/review_mr.py
 ## Support
 
 For issues with:
-- **Claude API**: https://docs.anthropic.com/
+- **Grok API**: https://docs.x.ai/
 - **GitLab CI/CD**: https://docs.gitlab.com/ee/ci/
 - **This integration**: Open an issue in your repository

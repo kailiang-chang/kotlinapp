@@ -6,7 +6,7 @@
 # - Outputs: reports/mr-<MR>-review.md and optional MR comment linking to it
 #
 # REQUIRED CI/CD VARIABLES (Settings > CI/CD > Variables)
-# - ANTHROPIC_API_KEY: Your Anthropic API key (masked, protected recommended)
+# - XAI_API_KEY: Your xAI (Grok) API key (masked, protected recommended)
 # - GITLAB_TOKEN: Personal access token with api scope (or use CI_JOB_TOKEN)
 #
 # USAGE
@@ -50,7 +50,7 @@ review-mr:
 
   before_script:
     - apk add --no-cache gcc musl-dev  # Required for some Python packages on Alpine
-    - pip install --no-cache-dir --quiet anthropic requests
+    - pip install --no-cache-dir --quiet openai requests
     - chmod +x .gitlab/scripts/review_mr.py
 
   script:
@@ -85,7 +85,7 @@ review-mr:
 #
 #   before_script:
 #     - apk add --no-cache gcc musl-dev
-#     - pip install --no-cache-dir --quiet anthropic requests
+#     - pip install --no-cache-dir --quiet openai requests
 #
 #   script:
 #     - python .gitlab/scripts/review_mr.py ${CI_MERGE_REQUEST_IID}
