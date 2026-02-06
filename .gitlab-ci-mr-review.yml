@@ -26,27 +26,19 @@
 #      --header "PRIVATE-TOKEN: YOUR_TOKEN" \
 #      --data "ref=main&variables[MR_NUMBER]=1&variables[POST_COMMENT]=false"
 
-stages:
-  - review
-
 # Manual MR review job
 review-mr:
   stage: review
   image: registry-jpe2.r-local.net/rpay-dev-one-operation-api-dev/python:3.13-alpine  # Small image, faster to pull than slim
-  when: manual  # Only runs when manually triggered
 
   # Input variables (set when triggering pipeline)
   variables:
     MR_NUMBER: ""  # Required: MR number to review
     POST_COMMENT: "false"  # Optional: Post comment on MR (true/false)
 
-  # Rules to ensure MR_NUMBER is provided and only run on main/master
+  # Allow manual triggers from any branch
   rules:
-    - if: '$MR_NUMBER == ""'
-      when: never
-    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
-      when: manual
-    - when: never
+    - when: manual
 
   before_script:
     - apk add --no-cache gcc musl-dev  # Required for some Python packages on Alpine
