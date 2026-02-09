@@ -9,6 +9,10 @@ import sys
 from openai import OpenAI
 import requests
 from pathlib import Path
+import urllib3
+
+# Disable SSL warnings when verify=False is used
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Configuration from environment variables
 GITLAB_TOKEN = os.environ.get('GITLAB_TOKEN')
@@ -22,7 +26,7 @@ def get_mr_diff(mr_number):
     url = f"{GITLAB_API_URL}/projects/{PROJECT_ID}/merge_requests/{mr_number}/diffs"
     headers = {'PRIVATE-TOKEN': GITLAB_TOKEN}
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, verify=False)
     response.raise_for_status()
 
     diffs = response.json()
@@ -49,7 +53,7 @@ def get_mr_info(mr_number):
     url = f"{GITLAB_API_URL}/projects/{PROJECT_ID}/merge_requests/{mr_number}"
     headers = {'PRIVATE-TOKEN': GITLAB_TOKEN}
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, verify=False)
     response.raise_for_status()
 
     return response.json()
@@ -117,7 +121,8 @@ def post_mr_comment(mr_number, report_path):
     response = requests.post(
         url,
         headers=headers,
-        json={'body': comment_body}
+        json={'body': comment_body},
+        verify=False
     )
     response.raise_for_status()
 
